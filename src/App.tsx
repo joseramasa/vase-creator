@@ -23,12 +23,67 @@ interface MaterialPreset {
 }
 
 const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
-  clay: { name: 'Raw Clay', color: '#a68a6b', roughness: 0.9, metalness: 0 },
-  terracotta: { name: 'Terracotta', color: '#bc6c25', roughness: 0.8, metalness: 0 },
-  glazed: { name: 'Glazed Ceramic', color: '#606c38', roughness: 0.1, metalness: 0.2 },
-  porcelain: { name: 'White Porcelain', color: '#fefae0', roughness: 0.2, metalness: 0 },
-  glass: { name: 'Tinted Glass', color: '#a2d2ff', roughness: 0.05, metalness: 0, transmission: 0.95, thickness: 0.5, opacity: 1 },
-  metal: { name: 'Bronze', color: '#b8860b', roughness: 0.3, metalness: 0.9 }
+  clay: { name: 'mat_clay', color: '#a68a6b', roughness: 0.9, metalness: 0 },
+  terracotta: { name: 'mat_terracotta', color: '#bc6c25', roughness: 0.8, metalness: 0 },
+  glazed: { name: 'mat_glazed', color: '#606c38', roughness: 0.1, metalness: 0.2 },
+  porcelain: { name: 'mat_porcelain', color: '#fefae0', roughness: 0.2, metalness: 0 },
+  glass: { name: 'mat_glass', color: '#a2d2ff', roughness: 0.05, metalness: 0, transmission: 0.95, thickness: 0.5, opacity: 1 },
+  metal: { name: 'mat_metal', color: '#b8860b', roughness: 0.3, metalness: 0.9 }
+}
+
+const TRANSLATIONS = {
+  en: {
+    title: 'Vase Creator',
+    material_preset: 'Material Preset',
+    height: 'Overall Height',
+    profile_shape: 'Profile Shape',
+    add_point: 'Add Point',
+    point: 'Point',
+    radius: 'Radius',
+    height_pos: 'Height Position',
+    wall_thickness: 'Wall Thickness',
+    twist: 'Twist (Spiral)',
+    ribs: 'Vertical Ribs',
+    rib_depth: 'Rib Depth',
+    rings: 'Horizontal Rings',
+    ring_depth: 'Ring Depth',
+    detail: 'Detail (Segments)',
+    export_stl: 'Export STL',
+    save_image: 'Save Image (PNG)',
+    reset: 'Reset Design',
+    mat_clay: 'Raw Clay',
+    mat_terracotta: 'Terracotta',
+    mat_glazed: 'Glazed Ceramic',
+    mat_porcelain: 'Porcelain',
+    mat_glass: 'Tinted Glass',
+    mat_metal: 'Bronze'
+  },
+  es: {
+    title: 'Creador de Jarrones',
+    material_preset: 'Material del Jarrón',
+    height: 'Altura Total',
+    profile_shape: 'Perfil de Forma',
+    add_point: 'Añadir Punto',
+    point: 'Punto',
+    radius: 'Radio',
+    height_pos: 'Posición de Altura',
+    wall_thickness: 'Espesor de Pared',
+    twist: 'Torsión (Espiral)',
+    ribs: 'Estrías Verticales',
+    rib_depth: 'Profundidad de Estría',
+    rings: 'Anillos Horizontales',
+    ring_depth: 'Profundidad de Anillo',
+    detail: 'Detalle (Segmentos)',
+    export_stl: 'Exportar STL',
+    save_image: 'Guardar Imagen (PNG)',
+    reset: 'Restablecer Diseño',
+    mat_clay: 'Arcilla',
+    mat_terracotta: 'Terracota',
+    mat_glazed: 'Cerámica Esmaltada',
+    mat_porcelain: 'Porcelana',
+    mat_glass: 'Vidrio Tintado',
+    mat_metal: 'Bronce'
+  }
 }
 
 interface VaseProps {
@@ -151,6 +206,7 @@ function Vase({ height, controlPoints, segments, wallThickness, twist, ribs, rib
 
 function App() {
   const meshRef = useRef<THREE.Mesh>(null)
+  const [lang, setLang] = useState<'en' | 'es'>('en')
   const [params, setParams] = useState({
     height: 15,
     controlPoints: [
@@ -168,6 +224,8 @@ function App() {
     ringAmplitude: 0.2,
     materialKey: 'clay'
   })
+
+  const t = (key: keyof typeof TRANSLATIONS['en']) => TRANSLATIONS[lang][key] || key
 
   const updateParam = (key: string, val: string | number) => {
     setParams(prev => ({
@@ -264,18 +322,27 @@ function App() {
 
       <aside className="sidebar">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Box size={24} />
-            Vase Creator
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}>
+            <Box size={20} />
+            {t('title')}
           </h1>
-          <button className="secondary" onClick={resetParams} title="Reset">
-            <RefreshCw size={16} />
-          </button>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button
+              className="secondary"
+              onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+              style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 'bold' }}
+            >
+              {lang === 'en' ? 'ES' : 'EN'}
+            </button>
+            <button className="secondary" onClick={resetParams} title={t('reset')}>
+              <RefreshCw size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="control-group">
           <div className="control-label">
-            <span>Material Preset</span>
+            <span>{t('material_preset')}</span>
           </div>
           <div className="material-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '0.5rem' }}>
             {Object.entries(MATERIAL_PRESETS).map(([key, mat]) => (
@@ -283,7 +350,7 @@ function App() {
                 key={key}
                 className={`material-button ${params.materialKey === key ? 'active' : ''}`}
                 onClick={() => updateParam('materialKey', key)}
-                title={mat.name}
+                title={t(mat.name as any)}
                 style={{
                   background: 'rgba(255,255,255,0.05)',
                   border: params.materialKey === key ? '2px solid #fff' : '2px solid transparent',
@@ -296,7 +363,9 @@ function App() {
                 }}
               >
                 <div style={{ width: '100%', paddingTop: '100%', borderRadius: '4px', background: mat.color }} />
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{mat.name.split(' ')[1] || mat.name}</span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                  {t(mat.name as any).split(' ').slice(-1)[0]}
+                </span>
               </button>
             ))}
           </div>
@@ -306,7 +375,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Overall Height</span>
+            <span>{t('height')}</span>
             <span>{params.height.toFixed(1)}</span>
           </div>
           <input
@@ -320,9 +389,9 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Profile Shape</span>
+            <span>{t('profile_shape')}</span>
             <button className="secondary" onClick={addControlPoint} style={{ padding: '2px 8px', fontSize: '12px' }}>
-              <Plus size={12} /> Add Point
+              <Plus size={12} /> {t('add_point')}
             </button>
           </div>
 
@@ -330,7 +399,7 @@ function App() {
             {params.controlPoints.map((p, i) => (
               <div key={i} className="point-item" style={{ background: 'rgba(255,255,255,0.03)', padding: '0.75rem', borderRadius: '8px', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '12px', opacity: 0.6 }}>Point {i + 1}</span>
+                  <span style={{ fontSize: '12px', opacity: 0.6 }}>{t('point')} {i + 1}</span>
                   {i !== 0 && i !== params.controlPoints.length - 1 && (
                     <button className="secondary" onClick={() => removeControlPoint(i)} style={{ padding: '2px', border: 'none', background: 'transparent' }}>
                       <Trash2 size={12} color="#ff4d4d" />
@@ -340,7 +409,7 @@ function App() {
 
                 <div className="control-group">
                   <div className="control-label">
-                    <span>Radius</span>
+                    <span>{t('radius')}</span>
                     <span>{p.r.toFixed(1)}</span>
                   </div>
                   <input
@@ -353,7 +422,7 @@ function App() {
                 {i !== 0 && i !== params.controlPoints.length - 1 && (
                   <div className="control-group">
                     <div className="control-label">
-                      <span>Height Position</span>
+                      <span>{t('height_pos')}</span>
                       <span>{(p.h * 100).toFixed(0)}%</span>
                     </div>
                     <input
@@ -372,7 +441,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Wall Thickness</span>
+            <span>{t('wall_thickness')}</span>
             <span>{params.wallThickness.toFixed(2)}</span>
           </div>
           <input
@@ -384,7 +453,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Twist (Spiral)</span>
+            <span>{t('twist')}</span>
             <span>{(params.twist / Math.PI).toFixed(2)}π</span>
           </div>
           <input
@@ -398,7 +467,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Vertical Ribs</span>
+            <span>{t('ribs')}</span>
             <span>{params.ribs}</span>
           </div>
           <input
@@ -411,7 +480,7 @@ function App() {
         {params.ribs > 0 && (
           <div className="control-group">
             <div className="control-label">
-              <span>Rib Depth</span>
+              <span>{t('rib_depth')}</span>
               <span>{params.ribAmplitude.toFixed(2)}</span>
             </div>
             <input
@@ -424,7 +493,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Horizontal Rings</span>
+            <span>{t('rings')}</span>
             <span>{params.rings}</span>
           </div>
           <input
@@ -437,7 +506,7 @@ function App() {
         {params.rings > 0 && (
           <div className="control-group">
             <div className="control-label">
-              <span>Ring Depth</span>
+              <span>{t('ring_depth')}</span>
               <span>{params.ringAmplitude.toFixed(2)}</span>
             </div>
             <input
@@ -452,7 +521,7 @@ function App() {
 
         <div className="control-group">
           <div className="control-label">
-            <span>Detail (Segments)</span>
+            <span>{t('detail')}</span>
             <span>{params.segments}</span>
           </div>
           <input
@@ -481,7 +550,7 @@ function App() {
             }}
           >
             <Download size={18} />
-            Export STL
+            {t('export_stl')}
           </button>
 
           <button
@@ -501,7 +570,7 @@ function App() {
             }}
           >
             <Camera size={18} />
-            Save Image (PNG)
+            {t('save_image')}
           </button>
 
           <button
@@ -522,7 +591,7 @@ function App() {
             }}
           >
             <RefreshCw size={12} />
-            Reset Design
+            {t('reset')}
           </button>
         </div>
       </aside>
