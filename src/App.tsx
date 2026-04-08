@@ -235,8 +235,14 @@ function App() {
   }
 
   const updateControlPoint = (index: number, field: keyof ControlPoint, val: string) => {
+    const num = parseFloat(val)
+    if (!isFinite(num)) return
+    // Clamp radius to [0.1, 20] and height fraction to [0, 1]
+    const clamped = field === 'r'
+      ? Math.max(0.1, Math.min(20, num))
+      : Math.max(0, Math.min(1, num))
     const newPoints = [...params.controlPoints]
-    newPoints[index] = { ...newPoints[index], [field]: parseFloat(val) }
+    newPoints[index] = { ...newPoints[index], [field]: clamped }
     setParams(prev => ({ ...prev, controlPoints: newPoints }))
   }
 
@@ -286,15 +292,20 @@ function App() {
 
   const exportSTL = () => {
     if (!meshRef.current) return
-    const exporter = new STLExporter()
-    const result = exporter.parse(meshRef.current) as string | ArrayBuffer
-    const blob = new Blob([result], { type: 'model/stl' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.setAttribute('download', 'vase-design.stl')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const exporter = new STLExporter()
+      const result = exporter.parse(meshRef.current) as string | ArrayBuffer
+      if (!result) throw new Error('Export returned empty result')
+      const blob = new Blob([result], { type: 'model/stl' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.setAttribute('download', 'vase-design.stl')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch (e) {
+      alert('STL export failed: ' + (e instanceof Error ? e.message : String(e)))
+    }
   }
 
   return (
